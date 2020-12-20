@@ -8,38 +8,40 @@ GIVE_ALL_PLAYERS_WEAPONS = true -- Makes every player get an empty pistol at sta
 ENABLE_RAGDOLL_PLAYER = false   -- Enable the resource to ragdolls player peds
 
 LAUNCH_FORCE = 5                -- In meters / seconds
-VECTOR_ZERO = vec(0, 0, 0)      -- Caching is nice
+
+-- Caching is nice --
+VECTOR_ZERO = vec(0, 0, 0)
+STARTUP_STRING = ('%s v%s initialized'):format(GetCurrentResourceName(), GetResourceMetadata(GetCurrentResourceName(), 'version', 0))
 
 -- Variables --
 local ragdolledPedList = {}     -- List of ped ids that were ragdolled
 local playerPed = PlayerPedId()
 local playerId = PlayerId()
 
-function GivePlayerAnEmptyWeapon()
+-- Functions --
+function GivePlayerAnEmptyPistol()
     if ENABLE_AIM_RAGDOLL and GIVE_ALL_PLAYERS_WEAPONS then
         return GiveWeaponToPed(playerPed, 'WEAPON_PISTOL', 0, false, true);
     end
 end
 
-GivePlayerAnEmptyWeapon()
-
 function IndexOf(a, id)
-
     for i, v in pairs(a) do
-        if v == id then
-            return i
-        end
+        if (v == id) then return i end
     end
-
     return -1
-
 end
 
 ---Ragdolls a ped
 ---@param ped number The id of the ped to ragdoll
-function EnableRagdoll(ped)
-    return EnableRagdollWithForce(ped, VECTOR_ZERO)
-end
+function EnableRagdoll(ped) return EnableRagdollWithForce(ped, VECTOR_ZERO) end
+
+--- Disables all registered ragdolls
+function DisableAllRagdoll() return TriggerEvent('stopAllRagdoll') end
+
+--- Disables the ragdoll of a specific ped
+---@param ped number The id of the ped to disable
+function DisableRagdoll(ped) return TriggerEvent('stopSpecificRagdoll', ped) end
 
 ---Ragdolls a ped while applying force
 ---@param ped number The id of the ped to ragdoll
@@ -52,20 +54,14 @@ function EnableRagdollWithForce(ped, force)
         Citizen.CreateThread(function()
 
             local pedId = ped;
-            local needToBreak = false
             local pedRow = table.insert(ragdolledPedList, pedId)
 
-            local stopRagdoll = AddEventHandler('stopAllRagdoll', function()
-                -- Stops the thread's main loop --
-                needToBreak = true
-            end)
+            -- Makes this thread main loop stop --
+            local needToBreak = false
 
-            local stopSpecificRagdoll = AddEventHandler('stopSpecificRagdoll', function(id)
-                if id == pedId then
-                    -- Stops the thread's main loop --
-                    needToBreak = true
-                end
-            end)
+            -- Stops the thread's main loop --
+            local stopRagdoll = AddEventHandler('stopAllRagdoll', function() needToBreak = true end)
+            local stopSpecificRagdoll = AddEventHandler('stopSpecificRagdoll', function(id) needToBreak = needToBreak or id == pedId end)
 
             SetEntityVelocity(pedId, table.unpack(force))
             SetPedToRagdoll(pedId, 1000, 1000, 0, 0, 0, 0)
@@ -74,11 +70,13 @@ function EnableRagdollWithForce(ped, force)
             TriggerEvent('startRagdoll', pedId);
             SetPedRagdollOnCollision(pedId, true)
 
-            -- When the 'stopSpecificRagdoll' or 'stopAllRagdoll' is triggered this while will evaluate to false, thus ending the thread --
+            -- Main loop --
             while not needToBreak and DoesEntityExist(pedId) do
+
                 Citizen.Wait(0)
                 SetPedToRagdoll(pedId, 1000, 1000, 0, 0, 0, 0)
                 ResetPedRagdollTimer(pedId)
+
             end
 
             -- Ragdolling is done --
@@ -94,17 +92,6 @@ function EnableRagdollWithForce(ped, force)
 
 end
 
---- Disables all registered ragdolls
-function DisableAllRagdoll()
-    return TriggerEvent('stopAllRagdoll')
-end
-
---- Disables the ragdoll of a specific ped
----@param ped number The id of the ped to disable
-function DisableRagdoll(ped)
-    return TriggerEvent('stopSpecificRagdoll', ped)
-end
-
 ---Empties the curent aimed vehicle and ragdolls all it's passengers
 ---@param vehicle number the vehicle ID to use
 function EmptyOutVehicle(vehicle)
@@ -115,6 +102,7 @@ function EmptyOutVehicle(vehicle)
     local maxNumberOfPassagers = GetVehicleMaxNumberOfPassengers(vehicle);
 
     for i = -1, maxNumberOfPassagers do
+
         local ped = GetPedInVehicleSeat(vehicle, i);
 
         if DoesEntityExist(ped) then
@@ -134,19 +122,6 @@ function EmptyOutVehicle(vehicle)
 
 end
 
-
--- Reset globals once the player spawn (or in our case, respawn) --
-AddEventHandler('playerSpawned', function()
-
-    DisableAllRagdoll()
-
-    playerId = PlayerId()
-    playerPed = PlayerPedId()
-
-    return GivePlayerAnEmptyWeapon()
-
-end)
-
 ---Managed the ragdolling
 function CheckRagdoller()
 
@@ -162,7 +137,6 @@ function CheckRagdoller()
                 if not IsPedInAnyVehicle(entity) then
 
                     if (IndexOf(ragdolledPedList, ped) == -1) then
-                        -- No peds were found in our list :( --
                         return EnableRagdoll(entity)
                     else
                         return DisableRagdoll(entity)
@@ -179,29 +153,35 @@ function CheckRagdoller()
         end
 
     elseif IsControlJustPressed(1, RAGDOLL_DISABLE_ALL_KEY) and IsPlayerFreeAiming(playerId) then
-
         return DisableAllRagdoll()
-
     end
 
 end
 
+-- Reset globals once the player spawn (or in our case, respawn) --
+AddEventHandler('playerSpawned', function()
+
+    DisableAllRagdoll()
+
+    playerId = PlayerId()
+    playerPed = PlayerPedId()
+
+    return GivePlayerAnEmptyPistol()
+
+end)
+
+GivePlayerAnEmptyPistol()
+
 -- Main thread --
 Citizen.CreateThread(function()
 
-    print(('%s v%s initialized'):format(GetCurrentResourceName(), GetResourceMetadata(GetCurrentResourceName(), 'version', 0)))
+    print(STARTUP_STRING)
 
     -- Main Loop --
     while true do
-
         Citizen.Wait(0)
 
-        if ENABLE_AIM_RAGDOLL then
-
-            CheckRagdoller()
-
-        end
-
+        if ENABLE_AIM_RAGDOLL then CheckRagdoller() end
     end
 
 end)
