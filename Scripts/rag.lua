@@ -61,7 +61,7 @@ function EnableRagdollWithForce(ped, force)
 
             -- Stops the thread's main loop --
             local stopRagdoll = AddEventHandler('stopAllRagdoll', function() needToBreak = true end)
-            local stopSpecificRagdoll = AddEventHandler('stopSpecificRagdoll', function(id) needToBreak = needToBreak or id == pedId end)
+            local stopSpecificRagdoll = AddEventHandler('stopSpecificRagdoll', function(id) needToBreak = (id == pedId) or needToBreak; end)
 
             SetEntityVelocity(pedId, table.unpack(force))
             SetPedToRagdoll(pedId, 1000, 1000, 0, 0, 0, 0)
@@ -136,7 +136,7 @@ function CheckRagdoller()
 
                 if not IsPedInAnyVehicle(entity) then
 
-                    if (IndexOf(ragdolledPedList, ped) == -1) then
+                    if (IndexOf(ragdolledPedList, entity) == -1) then
                         return EnableRagdoll(entity)
                     else
                         return DisableRagdoll(entity)
