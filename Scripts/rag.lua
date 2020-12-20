@@ -178,10 +178,9 @@ Citizen.CreateThread(function()
     print(STARTUP_STRING)
 
     -- Main Loop --
-    while true do
+    while ENABLE_AIM_RAGDOLL do
         Citizen.Wait(0)
-
-        if ENABLE_AIM_RAGDOLL then CheckRagdoller() end
+        CheckRagdoller()
     end
 
 end)
