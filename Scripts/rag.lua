@@ -79,6 +79,8 @@ function EnableRagdollWithForce(ped, force)
 
             end
 
+            TriggerEvent('stopRagdoll', pedId);
+
             -- Ragdolling is done --
             SetPedRagdollOnCollision(pedId, false)
             table.remove(ragdolledPedList, pedRow);
@@ -184,3 +186,4 @@ Citizen.CreateThread(function()
     end
 
 end)
+
