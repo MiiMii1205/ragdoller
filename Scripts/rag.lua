@@ -1,7 +1,11 @@
+--[[
+  * Created by MiiMii1205
+  * license MIT
+--]]
+
 -- Constants --
 RAGDOLL_KEY = 19                -- LEFT ALT	/ D-PAD DOWN
 RAGDOLL_DISABLE_ALL_KEY = 101   -- H / D-PAD RIGHT
--- Settings --
 ENABLE_AIM_RAGDOLL = true       -- Disables / Enables the main loop
 GIVE_ALL_PLAYERS_WEAPONS = true -- Makes every player get an empty pistol at start
 ENABLE_RAGDOLL_PLAYER = false   -- Enable the resource to ragdolls player peds
