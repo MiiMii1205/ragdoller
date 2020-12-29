@@ -1,17 +1,17 @@
 -- Constants --
 RAGDOLL_KEY = 19                -- LEFT ALT	/ D-PAD DOWN
 RAGDOLL_DISABLE_ALL_KEY = 101   -- H / D-PAD RIGHT
-
 -- Settings --
 ENABLE_AIM_RAGDOLL = true       -- Disables / Enables the main loop
 GIVE_ALL_PLAYERS_WEAPONS = true -- Makes every player get an empty pistol at start
 ENABLE_RAGDOLL_PLAYER = false   -- Enable the resource to ragdolls player peds
-
 LAUNCH_FORCE = 5                -- In meters / seconds
+ENABLE_RAG_SOUND = true
 
 -- Caching is nice --
 VECTOR_ZERO = vec(0, 0, 0)
 STARTUP_STRING = ('%s v%s initialized'):format(GetCurrentResourceName(), GetResourceMetadata(GetCurrentResourceName(), 'version', 0))
+STARTUP_HTML_STRING = (':standing_person: %s <small>v%s</small> initialized'):format(GetCurrentResourceName(), GetResourceMetadata(GetCurrentResourceName(), 'version', 0))
 
 -- Variables --
 local ragdolledPedList = {}     -- List of ped ids that were ragdolled
@@ -69,6 +69,7 @@ function EnableRagdollWithForce(ped, force)
 
             TriggerEvent('startRagdoll', pedId);
             SetPedRagdollOnCollision(pedId, true)
+            PlayAmbientSpeech1(ped, "GENERIC_HI", "SPEECH_PARAMS_INTERRUPT")
 
             -- Main loop --
             while not needToBreak and DoesEntityExist(pedId) do
@@ -84,6 +85,7 @@ function EnableRagdollWithForce(ped, force)
             -- Ragdolling is done --
             SetPedRagdollOnCollision(pedId, false)
             table.remove(ragdolledPedList, pedRow);
+            PlayAmbientSpeech1(ped, "GENERIC_BYE", "SPEECH_PARAMS_INTERRUPT")
 
             RemoveEventHandler(stopRagdoll)
             return RemoveEventHandler(stopSpecificRagdoll)
@@ -174,10 +176,39 @@ end)
 
 GivePlayerAnEmptyPistol()
 
+AddEventHandler('startRagdoll', function(id)
+
+    TriggerEvent('msgprinter:addMessage', (":woozy_face: Ped **<samp>#%s</samp>** is ragdolling"):format(id), GetCurrentResourceName());
+
+end)
+
+AddEventHandler('stopRagdoll', function(id)
+
+    TriggerEvent('msgprinter:addMessage', (":grinning: Ped **<samp>#%s</samp>** stopped ragdolling"):format(id), GetCurrentResourceName());
+
+end)
+
+AddEventHandler('startRagdoll', function(ped)
+
+    if ENABLE_RAG_SOUND then
+        PlaySoundFromEntity(-1, "SELECT", ped, "HUD_LIQUOR_STORE_SOUNDSET", 0, 0)
+    end
+
+end)
+
+AddEventHandler('stopRagdoll', function(ped)
+
+    if ENABLE_RAG_SOUND then
+        PlaySoundFromEntity(-1, "CANCEL", ped, "HUD_LIQUOR_STORE_SOUNDSET", 0, 0)
+    end
+
+end)
+
 -- Main thread --
 Citizen.CreateThread(function()
 
     print(STARTUP_STRING)
+    TriggerEvent('msgprinter:addMessage', STARTUP_HTML_STRING, GetCurrentResourceName());
 
     -- Main Loop --
     while ENABLE_AIM_RAGDOLL do
