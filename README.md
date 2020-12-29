@@ -53,4 +53,4 @@ If you aim at any occupied vehicle, you can forcibly eject and toggle Ragdoller 
 
 The resource also exports a `CheckRagdoller` function that can be called to manage Ragdoller for one frame.
 
-You can repeately call `CheckRagdoller` every frame and disable/enable it to your liking in any other resources. 
+You can repeatedly call `CheckRagdoller` every frame and disable/enable it to your liking in any other resources. 
