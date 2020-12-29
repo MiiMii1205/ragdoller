@@ -12,7 +12,7 @@ Also, remember that this script won't make Ragdoller-affected ped invincible. Us
 
 Remember that Ragdoller **doesn't** do any permission management. Therefore, it allows **EVERY** players to activate Ragdoller on any peds.
 
-To prevent this, you can set the `ENABLE_AIM_RAGDOLL` value in the `Scripts/rag.lua` file. Then, you can use the exported `CheckRagdoller` function to your liking.
+To prevent this, you can set the `ENABLE_AIM_RAGDOLL` value in the `Scripts/rag.lua` file to `false`. Then, you can use the exported `CheckRagdoller` function to your liking.
 
 This will effectively makes Ragdoller act more like a library than a standalone ressource.
 
