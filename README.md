@@ -57,4 +57,4 @@ Ragdoller also exports a `CheckRagdoller` function that can be called to manage 
 
 You can repeatedly call `CheckRagdoller` every frame and disable/enable it to your liking in any other resources.
 
-[5m]: (https://fivem.net) "FiveM"
+[5m]: https://fivem.net "FiveM"
