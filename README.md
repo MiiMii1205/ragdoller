@@ -1,10 +1,10 @@
 # Ragdoller #
 
-A simple [FiveM](https://fivem.net) script for enabling/disabling ragdolls on any aimed ped.
+A simple [FiveM][5m] script for enabling/disabling ragdolls on any aimed ped.
 
 ## Setup ##
 
-Just clone this repo to your ressource folder of your [FiveM](https://fivem.net) server. You might also need to edit your `server.cfg` to auto load the resource.
+Just clone this repo to your ressource folder of your [FiveM][5m] server. You might also need to edit your `server.cfg` to auto-load the resource.
 
 Also, remember that this script won't make Ragdoller-affected ped invincible. Use it wisely, especially while toggling Ragdoller on players.
 
@@ -18,9 +18,11 @@ This will effectively makes Ragdoller act more like a library than a standalone 
 
 ### Player Aiming Weapon ###
 
-By default, the scrip will automatically give any player an empty pistol to enable then to aim at any peds.
+By default, Ragdoller will automatically give any player an empty pistol to enable then to aim at any peds.
 
-To change this, you can set the `GIVE_ALL_PLAYERS_WEAPONS`  value in the `Scripts/rag.lua` file. Disabling `ENABLE_AIM_RAGDOLL` wil also prevent players to get pistols too.
+To change this, you can set the `GIVE_ALL_PLAYERS_WEAPONS`  value in the `Scripts/rag.lua` file to `false`.
+
+Disabling `ENABLE_AIM_RAGDOLL` will also prevent players to get pistols too.
 
 ### Player Ragdoller ###
 
@@ -51,6 +53,8 @@ If you aim at any occupied vehicle, you can forcibly eject and toggle Ragdoller 
 
 ## Exports ##
 
-The resource also exports a `CheckRagdoller` function that can be called to manage Ragdoller for one frame.
+Ragdoller also exports a `CheckRagdoller` function that can be called to manage Ragdoller for one frame.
 
-You can repeatedly call `CheckRagdoller` every frame and disable/enable it to your liking in any other resources. 
+You can repeatedly call `CheckRagdoller` every frame and disable/enable it to your liking in any other resources.
+
+[5m]: (https://fivem.net) "FiveM"
