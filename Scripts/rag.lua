@@ -178,6 +178,12 @@ AddEventHandler('playerSpawned', function()
 
 end)
 
+AddEventHandler('RCC:newPed', function()
+    playerPed = PlayerPedId()
+    playerId = PlayerId()
+    return GivePlayerAnEmptyPistol()
+end)
+
 GivePlayerAnEmptyPistol()
 
 AddEventHandler('startRagdoll', function(id)
