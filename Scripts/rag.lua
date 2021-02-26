@@ -10,17 +10,21 @@ ENABLE_AIM_RAGDOLL = true       -- Disables / Enables the main loop
 GIVE_ALL_PLAYERS_WEAPONS = true -- Makes every player get an empty pistol at start
 ENABLE_RAGDOLL_PLAYER = false   -- Enable the resource to ragdolls player peds
 LAUNCH_FORCE = 5                -- In meters / seconds
-ENABLE_RAG_SOUND = true
+ENABLE_RAG_SOUND = true         -- Enables sound support
+INSTRUCTOR_ENABLED = true       -- Enables Instructor support
+RESOURCE_NAME = GetCurrentResourceName()
 
 -- Caching is nice --
 VECTOR_ZERO = vec(0, 0, 0)
-STARTUP_STRING = ('%s v%s initialized'):format(GetCurrentResourceName(), GetResourceMetadata(GetCurrentResourceName(), 'version', 0))
-STARTUP_HTML_STRING = (':standing_person: %s <small>v%s</small> initialized'):format(GetCurrentResourceName(), GetResourceMetadata(GetCurrentResourceName(), 'version', 0))
+STARTUP_STRING = ('%s v%s initialized'):format(RESOURCE_NAME, GetResourceMetadata(RESOURCE_NAME, 'version', 0))
+STARTUP_HTML_STRING = (':standing_person: %s <small>v%s</small> initialized'):format(RESOURCE_NAME, GetResourceMetadata(RESOURCE_NAME, 'version', 0))
 
 -- Variables --
 local ragdolledPedList = {}     -- List of ped ids that were ragdolled
 local playerPed = PlayerPedId()
 local playerId = PlayerId()
+local isDisableAllInstructionActive = false;
+local isPedAimingInstructionActive = false;
 
 -- Functions --
 function GivePlayerAnEmptyPistol()
@@ -47,6 +51,33 @@ function DisableAllRagdoll() return TriggerEvent('stopAllRagdoll') end
 ---@param ped number The id of the ped to disable
 function DisableRagdoll(ped) return TriggerEvent('stopSpecificRagdoll', ped) end
 
+---UpdatePedAimingInstruction Toggles the "entity aiming" instruction for the instructor
+---@param isEnabled boolean should the instruction be shown?
+function UpdatePedAimingInstruction(isEnable)
+    if isPedAimingInstructionActive ~= isEnable then
+        isPedAimingInstructionActive = isEnable;
+        if isPedAimingInstructionActive then
+            return TriggerEvent('instructor:show-instruction', RAGDOLL_KEY, RESOURCE_NAME)
+        else
+            return TriggerEvent('instructor:hide-instruction', RAGDOLL_KEY, RESOURCE_NAME)
+        end
+    end
+end
+
+---UpdateDisableAllInstruction Toggles the "disable all" instruction for the instructor
+---@param isEnabled boolean should the instruction be shown?
+function UpdateDisableAllInstruction(isEnabled)
+    if isDisableAllInstructionActive ~= isEnabled then
+        isDisableAllInstructionActive = isEnabled
+
+        if isDisableAllInstructionActive then
+            return TriggerEvent('instructor:show-instruction', RAGDOLL_DISABLE_ALL_KEY, RESOURCE_NAME)
+        else
+            return TriggerEvent('instructor:hide-instruction', RAGDOLL_DISABLE_ALL_KEY, RESOURCE_NAME)
+        end
+    end
+end
+
 ---Ragdolls a ped while applying force
 ---@param ped number The id of the ped to ragdoll
 ---@param force table the force to apply
@@ -59,6 +90,7 @@ function EnableRagdollWithForce(ped, force)
 
             local pedId = ped;
             local pedRow = table.insert(ragdolledPedList, pedId)
+            UpdateDisableAllInstruction(true);
 
             -- Makes this thread main loop stop --
             local needToBreak = false
@@ -90,6 +122,9 @@ function EnableRagdollWithForce(ped, force)
             SetPedRagdollOnCollision(pedId, false)
             table.remove(ragdolledPedList, pedRow);
             PlayAmbientSpeech1(ped, "GENERIC_BYE", "SPEECH_PARAMS_INTERRUPT")
+
+            local isListEmpty = next(ragdolledPedList) == nil
+            UpdateDisableAllInstruction(not isListEmpty);
 
             RemoveEventHandler(stopRagdoll)
             return RemoveEventHandler(stopSpecificRagdoll)
@@ -130,7 +165,7 @@ function EmptyOutVehicle(vehicle)
 
 end
 
----Managed the ragdolling
+---CheckRagdoller Managed the ragdolling
 function CheckRagdoller()
 
     -- Weird if but it's slightly more optimal, as we are doing 2 native call except of 3
@@ -166,6 +201,47 @@ function CheckRagdoller()
 
 end
 
+local currentInstructionText = "Toggle Ragdolling";
+
+function UpdateInstructionText(newText)
+    if currentInstructionText ~= newText then
+        currentInstructionText = newText
+        TriggerEvent('instructor:update-instruction', RAGDOLL_KEY, currentInstructionText, RESOURCE_NAME)
+    end
+end
+
+VEH_RAGDOLL_INSTRUCTION_TEXT = "Toggle Ragdoll on every passagers";
+PED_RAGDOLL_INSTRUCTION_TEXT = "Toggle Ragdolling";
+
+---ManageInstructor Manages the Instructor
+function ManageInstructor()
+
+    local shouldAimingInstructionBeVisible = false;
+
+    if IsPlayerFreeAiming(playerId) then
+
+        local isAimingAtEntity, entity = GetEntityPlayerIsFreeAimingAt(playerId)
+
+        if isAimingAtEntity then
+
+            shouldAimingInstructionBeVisible = true;
+
+            if IsEntityAPed(entity) then
+                UpdateInstructionText(((IsPedInAnyVehicle(entity) and VEH_RAGDOLL_INSTRUCTION_TEXT) or PED_RAGDOLL_INSTRUCTION_TEXT))
+            elseif IsEntityAVehicle(entity) then
+                UpdateInstructionText(VEH_RAGDOLL_INSTRUCTION_TEXT)
+            else
+                shouldAimingInstructionBeVisible = false
+            end
+
+        end
+
+    end
+
+    UpdatePedAimingInstruction(shouldAimingInstructionBeVisible);
+
+end
+
 -- Reset globals once the player spawn (or in our case, respawn) --
 AddEventHandler('playerSpawned', function()
 
@@ -188,13 +264,13 @@ GivePlayerAnEmptyPistol()
 
 AddEventHandler('startRagdoll', function(id)
 
-    TriggerEvent('msgprinter:addMessage', (":woozy_face: Ped **<samp>#%s</samp>** is ragdolling"):format(id), GetCurrentResourceName());
+    TriggerEvent('msgprinter:addMessage', (":woozy_face: Ped **<samp>#%s</samp>** is ragdolling"):format(id), RESOURCE_NAME);
 
 end)
 
 AddEventHandler('stopRagdoll', function(id)
 
-    TriggerEvent('msgprinter:addMessage', (":grinning: Ped **<samp>#%s</samp>** stopped ragdolling"):format(id), GetCurrentResourceName());
+    TriggerEvent('msgprinter:addMessage', (":grinning: Ped **<samp>#%s</samp>** stopped ragdolling"):format(id), RESOURCE_NAME);
 
 end)
 
@@ -218,13 +294,29 @@ end)
 Citizen.CreateThread(function()
 
     print(STARTUP_STRING)
-    TriggerEvent('msgprinter:addMessage', STARTUP_HTML_STRING, GetCurrentResourceName());
+    TriggerEvent('msgprinter:addMessage', STARTUP_HTML_STRING, RESOURCE_NAME);
 
-    -- Main Loop --
-    while ENABLE_AIM_RAGDOLL do
-        Citizen.Wait(0)
-        CheckRagdoller()
+    if INSTRUCTOR_ENABLED then
+
+        TriggerEvent('instructor:add-instruction', RAGDOLL_KEY, "Toggle Ragdolling", RESOURCE_NAME, isPedAimingInstructionActive);
+        TriggerEvent('instructor:add-instruction', RAGDOLL_DISABLE_ALL_KEY, "Clear all ragdoll", RESOURCE_NAME, isDisableAllInstructionActive);
+
+        -- Main Loop --
+        while ENABLE_AIM_RAGDOLL do
+            Citizen.Wait(0)
+            ManageInstructor()
+            CheckRagdoller()
+        end
+
+        TriggerEvent('instructor:flush', RESOURCE_NAME);
+    else
+        -- Main Loop --
+        while ENABLE_AIM_RAGDOLL do
+            Citizen.Wait(0)
+            CheckRagdoller()
+        end
     end
+
 
 end)
 

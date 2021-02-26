@@ -4,15 +4,19 @@ A simple [FiveM][5m] script for enabling/disabling ragdolls on any aimed ped.
 
 ## Setup ##
 
-Just clone this repo to your ressource folder of your [FiveM][5m] server. You might also need to edit your `server.cfg` to auto-load the resource.
+Just clone this repo to your ressource folder of your [FiveM][5m] server. You might also need to edit your `server.cfg` to
+auto-load the resource.
 
-Also, remember that this script won't make Ragdoller-affected ped invincible. Use it wisely, especially while toggling Ragdoller on players.
+Also, remember that this script won't make Ragdoller-affected ped invincible. Use it wisely, especially while toggling
+Ragdoller on players.
 
 ### Permissions ###
 
-Remember that Ragdoller **doesn't** do any permission management. Therefore, it allows **EVERY** players to activate Ragdoller on any peds.
+Remember that Ragdoller **doesn't** do any permission management. Therefore, it allows **EVERY** players to activate
+Ragdoller on any peds.
 
-To prevent this, you can set the `ENABLE_AIM_RAGDOLL` value in the `Scripts/rag.lua` file to `false`. Then, you can use the exported `CheckRagdoller` function to your liking.
+To prevent this, you can set the `ENABLE_AIM_RAGDOLL` value in the `Scripts/rag.lua` file to `false`. Then, you can use the
+exported `CheckRagdoller` function to your liking.
 
 This will effectively makes Ragdoller act more like a library than a standalone ressource.
 
@@ -34,7 +38,8 @@ To change this, set the `ENABLE_RAGDOLL_PLAYER` value in the `Scripts/rag.lua` f
 
 Ragdoller can also add useful blips to every Ragdoller-affected ped.
 
-This is turned off by default, but to enable these, set the `RAGDOLL_SHOW_BLIPS` value to `true` in the `Scripts/pedTag.lua` script
+This is turned off by default, but to enable these, set the `RAGDOLL_SHOW_BLIPS` value to `true` in the `Scripts/pedTag.lua`
+script
 
 ### Sounds ###
 
