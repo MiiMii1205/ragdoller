@@ -290,6 +290,12 @@ AddEventHandler('stopRagdoll', function(ped)
 
 end)
 
+AddEventHandler('onResourceStop', function(resourceName)
+    if resourceName == RESSOURCE_NAME then
+        DisableAllRagdoll();
+    end
+end)
+
 -- Main thread --
 Citizen.CreateThread(function()
 
@@ -317,6 +323,4 @@ Citizen.CreateThread(function()
         end
     end
 
-
 end)
-
